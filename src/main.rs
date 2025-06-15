@@ -9,15 +9,28 @@ use shortcut_catapult::{
 };
 
 #[instrument(level = "trace")]
-fn main() -> Result<()> {
-    let cli = Cli::parse();
+fn main() {
+    if let Err(err) = run() {
+        eprintln!("{err:?}");
+        std::process::exit(3);
+    }
+}
+
+fn run() -> Result<()> {
+    let cli = match Cli::try_parse() {
+        Ok(cli) => cli,
+        Err(err) => {
+            err.print()?;
+            std::process::exit(1);
+        }
+    };
     let level = cli.log_level();
     shortcut_catapult::init(level)?;
     let config_path = config::config_path(cli.config.clone())?;
     tracing::debug!(?config_path, "using config path");
     match cli.command {
         Commands::Daemon(args) => daemon::run(args)?,
-        Commands::Apply(args) => apply::run(args)?,
+        Commands::Apply(args) => apply::run(args, config_path)?,
     }
     Ok(())
 }
