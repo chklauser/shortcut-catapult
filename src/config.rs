@@ -1,6 +1,5 @@
 use serde::Deserialize;
 use std::path::PathBuf;
-
 use color_eyre::eyre::Result;
 
 fn default_case_sensitive() -> bool {
