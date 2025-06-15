@@ -9,6 +9,8 @@ use once_cell::sync::OnceCell;
 
 static INIT: OnceCell<()> = OnceCell::new();
 
+pub mod config;
+
 pub fn init() -> Result<()> {
     INIT.get_or_try_init(|| {
         color_eyre::install()?;
