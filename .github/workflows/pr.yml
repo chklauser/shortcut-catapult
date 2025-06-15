@@ -1,0 +1,26 @@
+name: PR Checks
+
+on:
+  pull_request:
+
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Set up Rust
+        uses: actions-rs/toolchain@v1
+        with:
+          toolchain: stable
+          override: true
+          components: clippy, rustfmt
+      - name: Ensure Cargo.lock up to date
+        run: cargo metadata --locked --format-version 1 > /dev/null
+      - name: Check formatting
+        run: cargo fmt --all -- --check
+      - name: Lint with clippy
+        run: cargo clippy -- -D warnings
+      - name: Run tests
+        run: cargo test --locked
+      - name: Verify lockfile unchanged
+        run: git diff --exit-code Cargo.lock
