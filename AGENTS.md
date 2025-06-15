@@ -19,6 +19,9 @@ This is a simple tool and background service, designed to be quick and easy to u
 - `url` for manipulating URLs
 - `strsim` for fuzzy string matching
 - `xdg` for locating the `$XDG_CONFIG_HOME` path
+- `assert_cmd` for integration testing command line behavior (dev)
+- `assert_fs` for creating temporary files in tests (dev)
+- `predicates` for asserting process output (dev)
 
 ==== Program Structure
 This is a command line tool (bin). It consists of the following high-level modules. These can of course contain sub-modules.
