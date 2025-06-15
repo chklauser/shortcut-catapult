@@ -1,4 +1,6 @@
+use color_eyre::eyre::Result;
 use serde::Deserialize;
+use std::path::PathBuf;
 
 fn default_case_sensitive() -> bool {
     false
@@ -96,6 +98,18 @@ impl std::str::FromStr for Config {
     fn from_str(s: &str) -> Result<Self, Self::Err> {
         serde_yaml::from_str(s)
     }
+}
+
+/// Determine the config file path.
+pub fn config_path(cli: Option<PathBuf>) -> Result<PathBuf> {
+    if let Some(p) = cli {
+        return Ok(p);
+    }
+    let xdg = xdg::BaseDirectories::with_prefix("shortcut-catapult");
+    let home = xdg
+        .get_config_home()
+        .ok_or_else(|| color_eyre::eyre::eyre!("missing home directory"))?;
+    Ok(home.join("config.yml"))
 }
 
 #[cfg(test)]
