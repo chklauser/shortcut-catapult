@@ -14,6 +14,11 @@ This is a simple tool and background service, designed to be quick and easy to u
 - `clap`  for parsing the command line
 - `tracing` and `tracing-subscriber` for logging
 - `eyre` and `color-eyre` for error handling
+- `axum` for running the async HTTP server
+- `serde_yaml` for reading the YAML configuration
+- `url` for manipulating URLs
+- `strsim` for fuzzy string matching
+- `xdg` for locating the `$XDG_CONFIG_HOME` path
 
 ==== Program Structure
 This is a command line tool (bin). It consists of the following high-level modules. These can of course contain sub-modules.
