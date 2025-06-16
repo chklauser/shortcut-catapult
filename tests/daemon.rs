@@ -5,6 +5,7 @@ use shortcut_catapult::{self, daemon};
 use tracing::Level;
 
 const EXACT_CONFIG: &str = "match:\n  exact: Hello\n  url: https://example.com?q=$1\n";
+const PREFIX_CONFIG: &str = "match:\n  prefix: animals/\n  url: https://example.com/$2\n";
 
 async fn spawn_server(
     config: &str,
@@ -63,6 +64,25 @@ async fn not_found_returns_404() {
     eprintln!("status2: {}", resp.status());
     assert_eq!(resp.status(), StatusCode::NOT_FOUND);
     assert!(resp.text().await.unwrap().is_empty());
+
+    handle.abort();
+}
+
+#[tokio::test]
+async fn prefix_path_redirects() {
+    let (handle, addr, _file) = spawn_server(PREFIX_CONFIG).await;
+
+    let url = format!("http://{}:{}/animals/bear", addr.ip(), addr.port());
+    let client = reqwest::Client::builder()
+        .redirect(reqwest::redirect::Policy::none())
+        .build()
+        .unwrap();
+    let resp = client.get(&url).send().await.expect("request");
+    assert_eq!(resp.status(), StatusCode::FOUND);
+    assert_eq!(
+        resp.headers().get("location").unwrap(),
+        "https://example.com/bear"
+    );
 
     handle.abort();
 }

@@ -49,7 +49,10 @@ fn router(config_path: PathBuf) -> Router {
 
     Router::new()
         .route("/", get(root_handler))
-        .route("/{path}", get(handler))
+        // `/{*path}` captures the entire rest of the request path, including
+        // multiple segments. This is required to support URLs like
+        // `/foo/bar` which would otherwise only match the first segment.
+        .route("/{*path}", get(handler))
         .with_state(AppState { config_path })
 }
 
