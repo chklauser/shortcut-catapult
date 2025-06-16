@@ -29,7 +29,7 @@ fn run() -> Result<()> {
     let config_path = config::config_path(cli.config.clone())?;
     tracing::debug!(?config_path, "using config path");
     match cli.command {
-        Commands::Daemon(args) => daemon::run(args)?,
+        Commands::Daemon(args) => daemon::run(args, config_path)?,
         Commands::Apply(args) => apply::run(args, config_path)?,
     }
     Ok(())
