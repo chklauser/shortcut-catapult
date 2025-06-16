@@ -20,7 +20,7 @@ pub fn run(args: ApplyArgs, config_path: PathBuf) -> Result<()> {
     };
     input = input.trim_end_matches(&['\n', '\r'][..]).to_string();
 
-    let cfg_str = std::fs::read_to_string(&config_path)?;
+    let cfg_str = crate::config::read(&config_path)?;
     let cfg: Config = Config::parse(&cfg_str)?;
 
     match cfg.matcher.apply(&input)? {

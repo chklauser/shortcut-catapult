@@ -56,3 +56,15 @@ fn list_picks_first_match() {
         .success()
         .stdout(predicate::eq("https://two.example"));
 }
+
+#[test]
+fn missing_config_reports_path() {
+    let dir = assert_fs::TempDir::new().expect("temp dir");
+    let path = dir.path().join("config.yml");
+    let mut cmd = Command::cargo_bin("shortcut-catapult").expect("binary exists");
+    cmd.arg("--config").arg(&path).arg("apply").arg("Hello");
+    cmd.assert()
+        .failure()
+        .code(3)
+        .stderr(predicate::str::contains(path.to_string_lossy()));
+}

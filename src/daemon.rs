@@ -22,7 +22,7 @@ async fn handler(State(state): State<AppState>, Path(path): Path<String>) -> Res
     let input = path.trim_start_matches('/');
 
     // We re-read the configuration on every request for now
-    let cfg_str = match tokio::fs::read_to_string(&state.config_path).await {
+    let cfg_str = match crate::config::read_async(&state.config_path).await {
         Ok(s) => s,
         Err(err) => {
             return (StatusCode::INTERNAL_SERVER_ERROR, err.to_string()).into_response();
