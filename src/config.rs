@@ -1,4 +1,4 @@
-use color_eyre::eyre::Result;
+use color_eyre::eyre::{Context, Result};
 use serde::Deserialize;
 use std::path::PathBuf;
 
@@ -110,6 +110,28 @@ pub fn config_path(cli: Option<PathBuf>) -> Result<PathBuf> {
         .get_config_home()
         .ok_or_else(|| color_eyre::eyre::eyre!("missing home directory"))?;
     Ok(home.join("config.yml"))
+}
+
+/// Read the configuration file synchronously.
+pub fn read(config_path: &std::path::Path) -> Result<String> {
+    std::fs::read_to_string(config_path).wrap_err_with(|| {
+        format!(
+            "failed to read configuration file at {}",
+            config_path.display()
+        )
+    })
+}
+
+/// Read the configuration file asynchronously.
+pub async fn read_async(config_path: &std::path::Path) -> Result<String> {
+    tokio::fs::read_to_string(config_path)
+        .await
+        .wrap_err_with(|| {
+            format!(
+                "failed to read configuration file at {}",
+                config_path.display()
+            )
+        })
 }
 
 #[cfg(test)]
