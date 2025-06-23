@@ -86,3 +86,26 @@ async fn prefix_path_redirects() {
 
     handle.abort();
 }
+
+const URL_ENCODED_CONFIG: &str = "match:\n  exact: hello/world\n  url: https://example.com/decoded\n";
+
+#[tokio::test]
+async fn url_encoded_path_redirects() {
+    let (handle, addr, _file) = spawn_server(URL_ENCODED_CONFIG).await;
+
+    // Using %2F for the / character and %20 for space in the URL
+    let url = format!("http://{}:{}/hello%2Fworld%20with%20spaces", addr.ip(), addr.port());
+    let client = reqwest::Client::builder()
+        .redirect(reqwest::redirect::Policy::none())
+        .build()
+        .unwrap();
+    let resp = client.get(&url).send().await.expect("request");
+    eprintln!("status: {}", resp.status());
+    eprintln!("headers: {:?}", resp.headers());
+    
+    // This should be 404 initially since our config only matches "hello/world"
+    // not "hello/world with spaces"
+    assert_eq!(resp.status(), StatusCode::NOT_FOUND);
+
+    handle.abort();
+}
