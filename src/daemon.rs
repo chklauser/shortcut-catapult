@@ -70,6 +70,17 @@ pub async fn serve_http(args: DaemonArgs, config_path: PathBuf) -> Result<()> {
 
         // Use the first file descriptor
         let fd = fds[0];
+
+        // SAFETY: This unsafe block is required for systemd socket activation.
+        // systemd passes valid listening socket file descriptors to the service
+        // via the LISTEN_FDS environment variable. We have already:
+        // 1. Verified we're running under systemd (LISTEN_PID matches our process)
+        // 2. Confirmed that systemd provided at least one file descriptor
+        // 3. systemd guarantees these are valid listening sockets
+        //
+        // Taking ownership of the fd with from_raw_fd is the standard pattern
+        // for systemd socket activation in Rust. There is no safe alternative
+        // for working with raw file descriptors from the system.
         unsafe {
             // Convert raw fd to TcpListener
             use std::os::unix::io::FromRawFd;
