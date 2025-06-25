@@ -10,7 +10,7 @@ use axum::{
 use color_eyre::eyre::Result;
 use tracing::{info, instrument};
 
-use crate::{cli::DaemonArgs, config::Config, matching::Matcher};
+use crate::{cli::DaemonArgs, config::Config, matching::Matcher, systemd};
 
 #[derive(Clone)]
 struct AppState {
@@ -57,10 +57,37 @@ fn router(config_path: PathBuf) -> Router {
 }
 
 pub async fn serve_http(args: DaemonArgs, config_path: PathBuf) -> Result<()> {
-    info!(port = args.port, "daemon starting");
-    let addr = SocketAddr::from(([127, 0, 0, 1], args.port));
-    let listener = tokio::net::TcpListener::bind(addr).await?;
+    info!(port = args.port, systemd = args.systemd, "daemon starting");
+    
+    let listener = if args.systemd {
+        // Use socket activation from systemd
+        let fds = systemd::get_systemd_listeners()?;
+        if fds.is_empty() {
+            return Err(color_eyre::eyre::eyre!("No socket file descriptors from systemd"));
+        }
+        
+        // Use the first file descriptor
+        let fd = fds[0];
+        unsafe {
+            // Convert raw fd to TcpListener
+            use std::os::unix::io::FromRawFd;
+            let std_listener = std::net::TcpListener::from_raw_fd(fd);
+            std_listener.set_nonblocking(true)?;
+            tokio::net::TcpListener::from_std(std_listener)?
+        }
+    } else {
+        // Regular TCP listener
+        let addr = SocketAddr::from(([127, 0, 0, 1], args.port));
+        tokio::net::TcpListener::bind(addr).await?
+    };
+    
     let app = router(config_path);
+    
+    // Notify systemd that we're ready (only in systemd mode)
+    if args.systemd {
+        systemd::notify_ready()?;
+    }
+    
     axum::serve(listener, app).await?;
     Ok(())
 }
