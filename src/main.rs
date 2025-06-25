@@ -5,7 +5,7 @@ use tracing::instrument;
 use shortcut_catapult::{
     apply,
     cli::{Cli, Commands},
-    config, daemon,
+    config, daemon, systemd,
 };
 
 #[instrument(level = "trace")]
@@ -31,6 +31,8 @@ fn run() -> Result<()> {
     match cli.command {
         Commands::Daemon(args) => daemon::run(args, config_path)?,
         Commands::Apply(args) => apply::run(args, config_path)?,
+        Commands::Install(args) => systemd::install(args)?,
+        Commands::Uninstall(args) => systemd::uninstall(args)?,
     }
     Ok(())
 }
