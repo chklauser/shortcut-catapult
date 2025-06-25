@@ -58,14 +58,16 @@ fn router(config_path: PathBuf) -> Router {
 
 pub async fn serve_http(args: DaemonArgs, config_path: PathBuf) -> Result<()> {
     info!(port = args.port, systemd = args.systemd, "daemon starting");
-    
+
     let listener = if args.systemd {
         // Use socket activation from systemd
         let fds = systemd::get_systemd_listeners()?;
         if fds.is_empty() {
-            return Err(color_eyre::eyre::eyre!("No socket file descriptors from systemd"));
+            return Err(color_eyre::eyre::eyre!(
+                "No socket file descriptors from systemd"
+            ));
         }
-        
+
         // Use the first file descriptor
         let fd = fds[0];
         unsafe {
@@ -80,14 +82,14 @@ pub async fn serve_http(args: DaemonArgs, config_path: PathBuf) -> Result<()> {
         let addr = SocketAddr::from(([127, 0, 0, 1], args.port));
         tokio::net::TcpListener::bind(addr).await?
     };
-    
+
     let app = router(config_path);
-    
+
     // Notify systemd that we're ready (only in systemd mode)
     if args.systemd {
         systemd::notify_ready()?;
     }
-    
+
     axum::serve(listener, app).await?;
     Ok(())
 }

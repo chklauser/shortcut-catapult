@@ -65,5 +65,4 @@ pub struct InstallArgs {
 }
 
 #[derive(Args, Debug, Clone)]
-pub struct UninstallArgs {
-}
+pub struct UninstallArgs {}
