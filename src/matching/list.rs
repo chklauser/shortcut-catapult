@@ -1,12 +1,12 @@
 use eyre::Result;
 use tracing::instrument;
 
-use super::Matcher;
+use super::{LogTrace, Matcher};
 use crate::config::MatcherConfig;
 
 impl Matcher for Vec<MatcherConfig> {
     #[instrument(level = "info", skip(self, input))]
-    fn apply(&self, input: &str) -> Result<Option<String>> {
+    fn apply(&self, input: &str) -> Result<Option<(String, LogTrace)>> {
         tracing::info!(?input, "running list matcher");
         for matcher in self {
             if let Some(result) = matcher.apply(input)? {
@@ -43,6 +43,6 @@ mod tests {
         });
         let list = vec![m1, m2];
         let result = list.apply("Two").unwrap();
-        assert_eq!(result.unwrap(), "https://two.example");
+        assert_eq!(result.unwrap().0, "https://two.example");
     }
 }

@@ -2,12 +2,12 @@ use eyre::Result;
 use regex::RegexBuilder;
 use tracing::instrument;
 
-use super::Matcher;
+use super::{LogTrace, Matcher};
 use crate::config::RegexMatcherConfig;
 
 impl Matcher for RegexMatcherConfig {
     #[instrument(level = "info", skip(self, input))]
-    fn apply(&self, input: &str) -> Result<Option<String>> {
+    fn apply(&self, input: &str) -> Result<Option<(String, LogTrace)>> {
         tracing::info!(matcher = ?self, input, "running regex matcher");
 
         let regex = RegexBuilder::new(&self.regex)
@@ -31,12 +31,28 @@ impl Matcher for RegexMatcherConfig {
             let mut redirect = url.clone();
             redirect = substitute_template(&redirect, &caps);
             tracing::info!(%redirect, "regex matcher produced redirect");
-            return Ok(Some(redirect));
+            let trace = LogTrace::new(redirect.clone()).with_step(
+                input.to_string(),
+                "regex".to_string(),
+                self.regex.clone(),
+                candidate.clone(),
+            );
+            return Ok(Some((redirect, trace)));
         }
 
         if let Some(matcher) = &self.matcher {
             tracing::info!("regex matcher delegating to sub matcher");
-            return matcher.apply(&candidate);
+            if let Some((url, mut trace)) = matcher.apply(&candidate)? {
+                // Prepend this matcher's step to the trace
+                let step = super::TraceStep {
+                    input: input.to_string(),
+                    matcher_type: "regex".to_string(),
+                    matcher_detail: self.regex.clone(),
+                    output: candidate,
+                };
+                trace.steps.insert(0, step);
+                return Ok(Some((url, trace)));
+            }
         }
 
         tracing::info!("regex matcher did not match");
