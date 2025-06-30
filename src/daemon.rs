@@ -12,6 +12,17 @@ use tracing::{info, instrument};
 
 use crate::{cli::DaemonArgs, config::Config, matching::Matcher};
 
+/// Log the trace always at info level, regardless of the current log filter
+fn log_trace(trace: &crate::matching::LogTrace) {
+    // Check if tracing is enabled for info level, if not, print to stderr directly
+    if tracing::enabled!(tracing::Level::INFO) {
+        tracing::info!("{}", trace);
+    } else {
+        // Print directly to stderr to ensure log trace is always shown by default
+        eprintln!("{}", trace);
+    }
+}
+
 #[derive(Clone)]
 struct AppState {
     config_path: PathBuf,
@@ -36,7 +47,10 @@ async fn handler(State(state): State<AppState>, Path(path): Path<String>) -> Res
     };
 
     match cfg.matcher.apply(input) {
-        Ok(Some(url)) => (StatusCode::FOUND, [(header::LOCATION, url)]).into_response(),
+        Ok(Some((url, trace))) => {
+            log_trace(&trace);
+            (StatusCode::FOUND, [(header::LOCATION, url)]).into_response()
+        }
         Ok(None) => StatusCode::NOT_FOUND.into_response(),
         Err(err) => (StatusCode::INTERNAL_SERVER_ERROR, err.to_string()).into_response(),
     }
