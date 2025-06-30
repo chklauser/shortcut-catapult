@@ -48,7 +48,7 @@ fn substitute_template(template: &str, caps: &regex::Captures) -> String {
     let mut result = template.to_string();
     for i in 0..caps.len() {
         if let Some(m) = caps.get(i) {
-            let placeholder = format!("${}", i);
+            let placeholder = format!("${i}");
             result = result.replace(&placeholder, m.as_str());
         }
     }
