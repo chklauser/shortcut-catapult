@@ -44,7 +44,17 @@ fn get_binary_path() -> Result<String> {
     if args.is_empty() {
         return Err(eyre!("Could not determine binary path"));
     }
-    Ok(args[0].clone())
+
+    let path = std::path::Path::new(&args[0]);
+    if path.is_absolute() {
+        Ok(args[0].clone())
+    } else {
+        // Convert relative path to absolute using current working directory
+        let current_dir = std::env::current_dir()
+            .map_err(|e| eyre!("Could not get current working directory: {}", e))?;
+        let absolute_path = current_dir.join(path);
+        Ok(absolute_path.to_string_lossy().to_string())
+    }
 }
 
 /// Create systemd unit files

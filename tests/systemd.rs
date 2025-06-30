@@ -19,6 +19,20 @@ fn install_command_creates_unit_files() {
                 "SYSTEMCTL_MOCK: systemctl --user start shortcut-catapult.socket",
             )),
     );
+
+    // Verify that the service file contains an absolute path
+    let service_file = temp_dir
+        .path()
+        .join(".local/share/systemd/user/shortcut-catapult.service");
+    if service_file.exists() {
+        let content = std::fs::read_to_string(&service_file).expect("read service file");
+        // The ExecStart line should contain an absolute path (starting with /)
+        assert!(
+            content.contains("ExecStart=/"),
+            "Service file should contain absolute path in ExecStart: {}",
+            content
+        );
+    }
 }
 
 #[test]
