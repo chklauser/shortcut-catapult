@@ -6,15 +6,9 @@ use tracing::{info, instrument};
 
 use crate::{cli::ApplyArgs, config::Config, matching::Matcher};
 
-/// Log the trace always at info level, regardless of the current log filter
+/// Log the trace using the dedicated trace category
 fn log_trace(trace: &crate::matching::LogTrace) {
-    // Check if tracing is enabled for info level, if not, print to stderr directly
-    if tracing::enabled!(tracing::Level::INFO) {
-        tracing::info!("{}", trace);
-    } else {
-        // Print directly to stderr to ensure log trace is always shown by default
-        eprintln!("{}", trace);
-    }
+    tracing::info!(target: "shortcut_catapult::trace", "OK: {}", trace);
 }
 
 #[instrument(level = "debug", skip(args, config_path))]

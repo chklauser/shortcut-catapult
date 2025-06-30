@@ -4,17 +4,17 @@ use std::fmt;
 /// Represents a single step in the matching trace
 #[derive(Debug, Clone)]
 pub struct TraceStep {
-    pub input: String,
-    pub matcher_type: String,
-    pub matcher_detail: String,
-    pub output: String,
+    input: String,
+    matcher_type: String,
+    matcher_detail: String,
+    output: String,
 }
 
 /// Represents the complete trace of successful matches
 #[derive(Debug, Clone)]
 pub struct LogTrace {
-    pub steps: Vec<TraceStep>,
-    pub final_url: String,
+    steps: Vec<TraceStep>,
+    final_url: String,
 }
 
 impl LogTrace {
@@ -40,18 +40,10 @@ impl LogTrace {
         });
         self
     }
-
-    pub fn append(mut self, other: LogTrace) -> Self {
-        self.steps.extend(other.steps);
-        self.final_url = other.final_url;
-        self
-    }
 }
 
 impl fmt::Display for LogTrace {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        write!(f, "OK: ")?;
-
         if self.steps.is_empty() {
             write!(f, "{}", self.final_url)?;
         } else {
