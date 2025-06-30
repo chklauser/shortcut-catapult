@@ -23,13 +23,10 @@ pub fn init(level: Option<tracing::Level>) -> Result<()> {
             Some(level) => EnvFilter::new(level.as_str()),
             None => {
                 // Check for environment variable first - if set, use it as-is
-                match std::env::var("CATAPULT_LOG") {
-                    Ok(env_filter) => EnvFilter::new(env_filter),
-                    Err(_) => {
-                        // Default: warn level for everything, but info level for our log trace category
-                        EnvFilter::new("warn,shortcut_catapult::trace=info")
-                    }
-                }
+                EnvFilter::try_from_env("CATAPULT_LOG").unwrap_or_else(|_| {
+                    // Default: warn level for everything, but info level for our log trace category
+                    EnvFilter::new("warn,shortcut_catapult::trace=info")
+                })
             }
         };
         tracing_subscriber::registry()
