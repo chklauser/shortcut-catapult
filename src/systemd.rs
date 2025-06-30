@@ -10,7 +10,7 @@ Requires=shortcut-catapult.socket
 
 [Service]
 Type=notify
-ExecStart={binary_path} daemon --systemd
+ExecStart={binary_path} --info daemon --system
 StandardOutput=journal
 StandardError=journal
 Restart=on-failure
