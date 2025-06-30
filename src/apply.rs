@@ -25,7 +25,7 @@ pub fn run(args: ApplyArgs, config_path: PathBuf) -> Result<()> {
 
     match cfg.matcher.apply(&input)? {
         Some(url) => {
-            print!("{}", url);
+            print!("{url}");
             io::stdout().flush()?;
             Ok(())
         }

@@ -6,6 +6,7 @@ pub mod cli;
 pub mod config;
 pub mod daemon;
 pub mod matching;
+pub mod systemd;
 
 /// Initialize error handling and tracing.
 ///
